@@ -57,8 +57,9 @@ class Client(models.Model):
     appointment_month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
     appointment_time = models.TimeField(null=True, blank=True)
     phone_number = models.CharField(max_length=20)
-    services = models.ManyToManyField("Service")
-    worker = models.ForeignKey("Worker", on_delete=models.CASCADE)
+    services = models.ManyToManyField(Service)
+    worker = models.ForeignKey(Worker, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.full_name} — {self.appointment_day}/{self.appointment_month} {self.appointment_time.strftime('%H:%M')}"
+        time_str = self.appointment_time.strftime('%H:%M') if self.appointment_time else "Без времени"
+        return f"{self.full_name} — {self.appointment_day}/{self.appointment_month} {time_str}"
