@@ -39,9 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     "rest_framework",
-    'clients',
-    'services'
-]
+    'clients'
+  ]
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (

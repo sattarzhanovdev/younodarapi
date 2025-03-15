@@ -21,7 +21,7 @@ class Client(models.Model):
     full_name = models.CharField(max_length=255)
     appointment_day = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(31)])
     appointment_month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
-    appointment_time = models.TimeField(default="12:00")
+    appointment_time = models.TimeField(null=True, blank=True)
     phone_number = models.CharField(max_length=20)
     services = models.ManyToManyField("Service")
     worker = models.ForeignKey("Worker", on_delete=models.CASCADE)
