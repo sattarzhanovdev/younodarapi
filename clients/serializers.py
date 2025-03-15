@@ -1,14 +1,20 @@
 from rest_framework import serializers
-from .models import Client, Service
+from .models import Worker, Service, Client
+
+class WorkerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Worker
+        fields = '__all__'
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ['id', 'name', 'price']
+        fields = '__all__'
 
 class ClientSerializer(serializers.ModelSerializer):
-    service_type = ServiceSerializer(many=True, read_only=True)
+    services = ServiceSerializer(many=True, read_only=True)
+    worker = WorkerSerializer(read_only=True)
 
     class Meta:
         model = Client
-        fields = ['id', 'full_name', 'phone_number', 'total_price', 'service_type']
+        fields = '__all__'
