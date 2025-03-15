@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -16,15 +17,11 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
-
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-
 class Client(models.Model):
     full_name = models.CharField(max_length=255)
     appointment_day = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(31)])
     appointment_month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
-    appointment_time = models.TimeField(default="12:00")  # Указываем значение по умолчанию
+    appointment_time = models.TimeField(default=datetime.time(12, 0))  # Правильный формат
     phone_number = models.CharField(max_length=20)
     services = models.ManyToManyField("Service")
     worker = models.ForeignKey("Worker", on_delete=models.CASCADE)
