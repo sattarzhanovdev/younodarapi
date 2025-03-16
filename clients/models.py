@@ -1,13 +1,4 @@
 from datetime import datetime, timedelta
-# Фильтр расходов за определенный месяц
-def get_monthly_expenses(month, year):
-    return Expense.objects.filter(date__year=year, date__month=month)
-
-# Фильтр расходов за определенную неделю
-def get_weekly_expenses(year, week_number):
-    first_day_of_week = datetime.strptime(f'{year}-W{week_number}-1', "%Y-W%W-%w")
-    last_day_of_week = first_day_of_week + timedelta(days=6)
-    return Expense.objects.filter(date__range=[first_day_of_week, last_day_of_week])
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
@@ -90,3 +81,13 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.amount} KGS ({self.date})"
+
+# Фильтр расходов за определенный месяц
+def get_monthly_expenses(month, year):
+    return Expense.objects.filter(date__year=year, date__month=month)
+
+# Фильтр расходов за определенную неделю
+def get_weekly_expenses(year, week_number):
+    first_day_of_week = datetime.strptime(f'{year}-W{week_number}-1', "%Y-W%W-%w")
+    last_day_of_week = first_day_of_week + timedelta(days=6)
+    return Expense.objects.filter(date__range=[first_day_of_week, last_day_of_week])

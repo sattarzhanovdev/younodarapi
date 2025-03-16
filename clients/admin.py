@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Client, Service, Worker, WorkerServiceShare, WorkerServiceShareDetail
+from .models import Client, Service, Worker, WorkerServiceShare, WorkerServiceShareDetail, Expense
 
 class WorkerServiceShareDetailInline(admin.TabularInline):  # Позволяет добавлять услуги на одной странице
     model = WorkerServiceShareDetail
@@ -13,3 +13,8 @@ admin.site.register(Client)
 admin.site.register(Service)
 admin.site.register(Worker)
 admin.site.register(WorkerServiceShare, WorkerServiceShareAdmin)
+@admin.register(Expense)
+class ExpenseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'amount', 'date', 'category')
+    list_filter = ('category', 'date')
+    search_fields = ('name', 'description')
