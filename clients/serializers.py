@@ -12,6 +12,9 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClientSerializer(serializers.ModelSerializer):
+    worker = WorkerSerializer()  # Вложенный сериализатор для работника
+    services = ServiceSerializer(many=True)  # Вложенный сериализатор для списка услуг
+
     class Meta:
         model = Client
         fields = '__all__'
