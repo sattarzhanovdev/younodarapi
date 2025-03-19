@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from django.utils.timezone import now
 
 class Worker(models.Model):
     name = models.CharField(max_length=255)
@@ -17,8 +18,6 @@ class Service(models.Model):
 
     def __str__(self):
         return self.name
-
-
 
 class WorkerServiceShare(models.Model):
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE)
@@ -39,14 +38,12 @@ class WorkerServiceShareDetail(models.Model):
     fixed_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def clean(self):
-        if self.share_type == 'percentage' and self.percentage is None:
-            raise ValidationError("Если выбрано 'Процент', поле 'percentage' обязательно.")
-        if self.share_type == 'fixed' and self.fixed_amount is None:
-            raise ValidationError("Если выбрана 'Фиксированная сумма', поле 'fixed_amount' обязательно.")
-        if self.share_type == 'percentage' and self.fixed_amount is not None:
-            raise ValidationError("При выборе 'Процент' поле 'fixed_amount' должно быть пустым.")
-        if self.share_type == 'fixed' and self.percentage is not None:
-            raise ValidationError("При выборе 'Фиксированная сумма' поле 'percentage' должно быть пустым.")
+        if self.share_type == 'percentage':
+            if self.percentage is None or self.fixed_amount is not None:
+                raise ValidationError("При выборе 'Процент' заполните 'percentage' и оставьте 'fixed_amount' пустым.")
+        elif self.share_type == 'fixed':
+            if self.fixed_amount is None or self.percentage is not None:
+                raise ValidationError("При выборе 'Фиксированная сумма' заполните 'fixed_amount' и оставьте 'percentage' пустым.")
 
     def __str__(self):
         return f"{self.worker_service_share.worker} - {self.service} ({self.share_type})"
@@ -65,29 +62,36 @@ class Client(models.Model):
         return f"{self.full_name} — {self.appointment_day}/{self.appointment_month} {time_str}"
 
 class Expense(models.Model):
-    name = models.CharField(max_length=255)  # Название расхода
+    name = models.CharField(max_length=255)
     amount = models.DecimalField(
         max_digits=10, decimal_places=2,
         validators=[MinValueValidator(0)]
-    )  # Сумма расхода
-    date = models.DateField()  # Дата расхода
+    )
+    date = models.DateField()
     category = models.CharField(max_length=100, choices=[
         ('rent', 'Аренда'),
         ('salary', 'Зарплата'),
         ('supplies', 'Закупки'),
         ('other', 'Другое'),
-    ])  # Категория расхода
-    description = models.TextField(blank=True, null=True)  # Описание
+    ])
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.name} - {self.amount} KGS ({self.date})"
 
+    @property
+    def day_expense(self):
+        return Expense.objects.filter(date=self.date).aggregate(total=models.Sum('amount'))['total'] or 0
+
 # Фильтр расходов за определенный месяц
-def get_monthly_expenses(month, year):
+def get_monthly_expenses(month=None, year=None):
+    today = now().date()
+    month = month or today.month
+    year = year or today.year
     return Expense.objects.filter(date__year=year, date__month=month)
 
 # Фильтр расходов за определенную неделю
 def get_weekly_expenses(year, week_number):
-    first_day_of_week = datetime.strptime(f'{year}-W{week_number}-1', "%Y-W%W-%w")
+    first_day_of_week = datetime.fromisocalendar(year, week_number, 1).date()
     last_day_of_week = first_day_of_week + timedelta(days=6)
     return Expense.objects.filter(date__range=[first_day_of_week, last_day_of_week])

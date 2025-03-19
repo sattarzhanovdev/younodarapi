@@ -12,17 +12,17 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClientSerializer(serializers.ModelSerializer):
-    services = ServiceSerializer(many=True, read_only=True)
-    worker = WorkerSerializer(read_only=True)
-
     class Meta:
         model = Client
         fields = '__all__'
 
-
 class ExpenseSerializer(serializers.ModelSerializer):
-    category_display = serializers.CharField(source='get_category_display', read_only=True)  # Читаемый формат категории
-
     class Meta:
         model = Expense
         fields = '__all__'
+
+# Сериализатор для статистики расходов
+class DailyExpenseStatsSerializer(serializers.Serializer):
+    total_items = serializers.IntegerField()
+    added_today = serializers.IntegerField()
+    spent_today = serializers.DecimalField(max_digits=10, decimal_places=2)

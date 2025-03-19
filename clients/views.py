@@ -1,7 +1,10 @@
 from rest_framework import viewsets, generics
+from django.utils.timezone import now
+from django.db.models import Sum
 from .models import Worker, Service, Client, Expense
 from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer
-from django.utils.timezone import now
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 class WorkerViewSet(viewsets.ModelViewSet):
     queryset = Worker.objects.all()
@@ -30,3 +33,18 @@ class MonthlyExpensesView(generics.ListAPIView):
         month = self.kwargs['month']
         year = self.kwargs.get('year', now().year)
         return Expense.objects.filter(date__year=year, date__month=month)
+
+# Новое представление для статистики по расходам
+class DailyExpenseStatsView(APIView):
+    def get(self, request):
+        today = now().date()
+
+        total_items = Expense.objects.count()  # Общее количество наименований
+        added_today = Expense.objects.filter(date=today).count()  # Добавлено сегодня
+        spent_today = Expense.objects.filter(date=today).aggregate(total_spent=Sum('amount'))['total_spent'] or 0  # Израсходовано за сегодня
+
+        return Response({
+            "total_items": total_items,
+            "added_today": added_today,
+            "spent_today": spent_today
+        })
