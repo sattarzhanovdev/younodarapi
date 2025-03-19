@@ -48,3 +48,10 @@ class DailyExpenseStatsView(APIView):
             "added_today": added_today,
             "spent_today": spent_today
         })
+
+
+class ClientsAddedTodayView(APIView):
+    def get(self, request):
+        today = now().date()
+        count = Client.objects.filter(appointment_day=today.day, appointment_month=today.month).count()
+        return Response({"clients_added_today": count})
