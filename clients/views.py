@@ -2,7 +2,7 @@ from rest_framework import viewsets, generics
 from django.utils.timezone import now
 from django.db.models import Sum
 from .models import Worker, Service, Client, Expense
-from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer
+from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerialize, DailyExpenseStatsSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -35,19 +35,29 @@ class MonthlyExpensesView(generics.ListAPIView):
         return Expense.objects.filter(date__year=year, date__month=month)
 
 # Новое представление для статистики по расходам
-class DailyExpenseStatsView(APIView):
-    def get(self, request):
+
+class DailyStatsView(APIView):
+    def get(self, request, *args, **kwargs):
         today = now().date()
 
-        total_items = Expense.objects.count()  # Общее количество наименований
-        added_today = Expense.objects.filter(date=today).count()  # Добавлено сегодня
-        spent_today = Expense.objects.filter(date=today).aggregate(total_spent=Sum('amount'))['total_spent'] or 0  # Израсходовано за сегодня
+        # Подсчет клиентов, добавленных сегодня
+        clients_today = Client.objects.filter(appointment_day=today.day, appointment_month=today.month).count()
 
-        return Response({
-            "total_items": total_items,
-            "added_today": added_today,
-            "spent_today": spent_today
-        })
+        # Подсчет суммы расходов за сегодня
+        spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('amount'))['total'] or 0
+
+        # Подсчет количества израсходованных товаров за сегодня
+        items_spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('quantity'))['total'] or 0
+
+        data = {
+            "total_items": Expense.objects.count(),
+            "added_today": clients_today,
+            "spent_today": spent_today,
+            "items_spent_today": items_spent_today  # Новое поле
+        }
+
+        serializer = DailyExpenseStatsSerializer(data)
+        return Response(serializer.data)
 
 
 class ClientsAddedTodayView(APIView):
