@@ -2,7 +2,7 @@ from rest_framework import viewsets, generics
 from django.utils.timezone import now
 from django.db.models import Sum
 from .models import Worker, Service, Client, Expense
-from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerialize, DailyExpenseStatsSerializer
+from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer, DailyExpenseStatsSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 

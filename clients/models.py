@@ -61,6 +61,9 @@ class Client(models.Model):
         time_str = self.appointment_time.strftime('%H:%M') if self.appointment_time else "Без времени"
         return f"{self.full_name} — {self.appointment_day}/{self.appointment_month} {time_str}"
 
+from django.core.validators import MinValueValidator
+from django.db import models
+
 class Expense(models.Model):
     name = models.CharField(max_length=255)
     amount = models.DecimalField(
@@ -75,6 +78,7 @@ class Expense(models.Model):
         ('other', 'Другое'),
     ])
     description = models.TextField(blank=True, null=True)
+    quantity = models.PositiveIntegerField(default=1)  # ✅ Добавляем поле количества
 
     def __str__(self):
         return f"{self.name} - {self.amount} KGS ({self.date})"
@@ -82,7 +86,7 @@ class Expense(models.Model):
     @property
     def day_expense(self):
         return Expense.objects.filter(date=self.date).aggregate(total=models.Sum('amount'))['total'] or 0
-
+      
 # Фильтр расходов за определенный месяц
 def get_monthly_expenses(month=None, year=None):
     today = now().date()
