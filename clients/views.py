@@ -85,34 +85,48 @@ class ClientsAddedTodayView(APIView):
 
 # POST
 
-class ClientDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return Client.objects.get(pk=pk)
-        except Client.DoesNotExist:
-            return None
+from rest_framework import serializers
+from .models import Client
+from datetime import datetime
 
-    def post(self, request):
-        serializer = ClientSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class ClientSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='full_name')
+    phone = serializers.CharField(source='phone_number')
+    date = serializers.CharField(write_only=True)  # "22.05.25"
 
-    def put(self, request, pk):
-        client = self.get_object(pk)
-        if not client:
-            return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
+    master = serializers.JSONField()
+    cabinet = serializers.JSONField()
+    services = serializers.JSONField()
+    product = serializers.JSONField()
+    payment = serializers.CharField()
 
-        serializer = ClientSerializer(client, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    class Meta:
+        model = Client
+        fields = [
+            'name', 'phone', 'date',
+            'master', 'cabinet',
+            'services', 'product',
+            'payment'
+        ]
 
-    def delete(self, request, pk):
-        client = self.get_object(pk)
-        if not client:
-            return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
-        client.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def create(self, validated_data):
+        date_str = validated_data.pop('date')
+        appointment_date = datetime.strptime(date_str, "%d.%m.%y").date()
+        appointment_time = validated_data['master'].get('time', '00:00')
+        validated_data['appointment_date'] = appointment_date
+        validated_data['appointment_time'] = appointment_time
+        return Client.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        date_str = validated_data.pop('date', None)
+        if date_str:
+            appointment_date = datetime.strptime(date_str, "%d.%m.%y").date()
+            instance.appointment_date = appointment_date
+
+        if 'master' in validated_data:
+            instance.appointment_time = validated_data['master'].get('time', instance.appointment_time)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
