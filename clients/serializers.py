@@ -41,7 +41,7 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = [
-            'name', 'phone', 'date',
+            'name', 'phone', 'date', 'time',
             'appointment_date', 'appointment_time',
             'master', 'cabinet',
             'services', 'product',
@@ -122,4 +122,3 @@ class DailyExpenseStatsSerializer(serializers.Serializer):
     items_spent_today = serializers.DecimalField(max_digits=12, decimal_places=2)
     income_this_month = serializers.DecimalField(max_digits=12, decimal_places=2)
     expense_this_month = serializers.DecimalField(max_digits=12, decimal_places=2)
-
