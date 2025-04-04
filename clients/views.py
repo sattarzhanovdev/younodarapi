@@ -93,7 +93,7 @@ class DailyStatsView(APIView):
         today = now().date()
 
         clients_today = Client.objects.filter(appointment_date=today).count()
-        spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('amount'))['total'] or 0
+        spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('price'))['total'] or 0
         items_spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('quantity'))['total'] or 0
 
         data = {
