@@ -27,7 +27,6 @@ class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['appointment_day', 'appointment_month', 'worker']
 
 class ExpenseListCreateView(generics.ListCreateAPIView):
     queryset = Expense.objects.all()
