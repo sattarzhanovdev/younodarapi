@@ -83,7 +83,7 @@ class Expense(models.Model):
         max_digits=10, decimal_places=2,
         validators=[MinValueValidator(0)]
     )
-    expense = models.DecimalField(
+    quantity = models.DecimalField(
         max_digits=10, decimal_places=2,
         validators=[MinValueValidator(0)]
     )
