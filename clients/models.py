@@ -93,6 +93,8 @@ class Expense(models.Model):
     )
     unit = models.CharField(max_length=50)
 
+    date = models.DateField(default=now)  # 👈 добавь это
+
     def __str__(self):
         return f"{self.name} — {self.amount} ({self.unit})"
 
