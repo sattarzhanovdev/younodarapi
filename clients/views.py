@@ -27,12 +27,17 @@ class ClientViewSet(viewsets.ModelViewSet):
 
 class ExpenseListCreateView(APIView):
     def get(self, request):
-        expenses = Expense.objects.all().order_by('-date')
+        expenses = Expense.objects.all()
         serializer = ExpenseSerializer(expenses, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = ExpenseSerializer(data=request.data)
+        # Проверяем: это массив?
+        if isinstance(request.data, list):
+            serializer = ExpenseSerializer(data=request.data, many=True)
+        else:
+            serializer = ExpenseSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -49,14 +54,15 @@ class ExpenseDetailView(APIView):
     def get(self, request, pk):
         expense = self.get_object(pk)
         if not expense:
-            return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = ExpenseSerializer(expense)
         return Response(serializer.data)
 
     def put(self, request, pk):
         expense = self.get_object(pk)
         if not expense:
-            return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = ExpenseSerializer(expense, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -66,9 +72,10 @@ class ExpenseDetailView(APIView):
     def delete(self, request, pk):
         expense = self.get_object(pk)
         if not expense:
-            return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
         expense.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 

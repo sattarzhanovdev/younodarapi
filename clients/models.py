@@ -83,22 +83,18 @@ class Expense(models.Model):
         max_digits=10, decimal_places=2,
         validators=[MinValueValidator(0)]
     )
-    date = models.DateField()
-    category = models.CharField(max_length=100, choices=[
-        ('rent', 'Аренда'),
-        ('salary', 'Зарплата'),
-        ('supplies', 'Закупки'),
-        ('other', 'Другое'),
-    ])
-    description = models.TextField(blank=True, null=True)
-    quantity = models.PositiveIntegerField(default=1)
+    expense = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    unit = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"{self.name} - {self.amount} KGS ({self.date})"
-
-    @property
-    def day_expense(self):
-        return Expense.objects.filter(date=self.date).aggregate(total=models.Sum('amount'))['total'] or 0
+        return f"{self.name} — {self.amount} ({self.unit})"
 
 
 # Вспомогательные функции
