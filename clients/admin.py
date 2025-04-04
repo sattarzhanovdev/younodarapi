@@ -15,6 +15,5 @@ admin.site.register(Worker)
 admin.site.register(WorkerServiceShare, WorkerServiceShareAdmin)
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'amount', 'date', 'category')
-    list_filter = ('category', 'date')
-    search_fields = ('name', 'description')
+    list_display = ('name', 'amount', 'price', 'expense', 'unit')
+    search_fields = ('name',)
