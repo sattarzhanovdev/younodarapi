@@ -63,7 +63,7 @@ class Client(models.Model):
     master = models.JSONField(null=True, blank=True)
     cabinet = models.JSONField(null=True, blank=True)
     payment = models.CharField(max_length=50)
-    time = models.CharField(max_length=4)
+    time = models.CharField(max_length=5)
 
     def __str__(self):
         return f"{self.full_name} — {self.appointment_date} {self.appointment_time}"
