@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
+
 
 class Worker(models.Model):
     name = models.CharField(max_length=255)
@@ -12,6 +13,7 @@ class Worker(models.Model):
     def __str__(self):
         return self.name
 
+
 class Service(models.Model):
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -19,12 +21,14 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
+
 class WorkerServiceShare(models.Model):
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE)
     service = models.ManyToManyField(Service, through='WorkerServiceShareDetail')
 
     def __str__(self):
         return f"{self.worker}"
+
 
 class WorkerServiceShareDetail(models.Model):
     worker_service_share = models.ForeignKey(WorkerServiceShare, on_delete=models.CASCADE)
@@ -48,6 +52,7 @@ class WorkerServiceShareDetail(models.Model):
     def __str__(self):
         return f"{self.worker_service_share.worker} - {self.service} ({self.share_type})"
 
+
 class Client(models.Model):
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
@@ -62,9 +67,15 @@ class Client(models.Model):
     def __str__(self):
         return f"{self.full_name} — {self.appointment_date} {self.appointment_time}"
 
+    @property
+    def total_cost(self):
+        total = 0
+        for service in self.services or []:
+            total += float(service.get("price", 0))
+        for item in self.product or []:
+            total += float(item.get("price", 0)) * int(item.get("amount", 1))
+        return total
 
-from django.core.validators import MinValueValidator
-from django.db import models
 
 class Expense(models.Model):
     name = models.CharField(max_length=255)
@@ -80,7 +91,7 @@ class Expense(models.Model):
         ('other', 'Другое'),
     ])
     description = models.TextField(blank=True, null=True)
-    quantity = models.PositiveIntegerField(default=1)  # ✅ Добавляем поле количества
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return f"{self.name} - {self.amount} KGS ({self.date})"
@@ -89,14 +100,16 @@ class Expense(models.Model):
     def day_expense(self):
         return Expense.objects.filter(date=self.date).aggregate(total=models.Sum('amount'))['total'] or 0
 
-# Фильтр расходов за определенный месяц
+
+# Вспомогательные функции
+
 def get_monthly_expenses(month=None, year=None):
     today = now().date()
     month = month or today.month
     year = year or today.year
     return Expense.objects.filter(date__year=year, date__month=month)
 
-# Фильтр расходов за определенную неделю
+
 def get_weekly_expenses(year, week_number):
     first_day_of_week = datetime.fromisocalendar(year, week_number, 1).date()
     last_day_of_week = first_day_of_week + timedelta(days=6)
