@@ -26,22 +26,42 @@ class ClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = ['name', 'phone', 'date', 'master', 'cabinet', 'services', 'product', 'payment']
+        fields = [
+            'name', 'phone', 'date',
+            'master', 'cabinet',
+            'services', 'product',
+            'payment'
+        ]
 
     def create(self, validated_data):
-        # Извлекаем и преобразуем данные
-        date_str = validated_data.pop('date')  # "22.05.25"
+        # Обрабатываем дату и время
+        date_str = validated_data.pop('date')
         appointment_date = datetime.strptime(date_str, "%d.%m.%y").date()
 
         master_data = validated_data.get('master', {})
-        appointment_time = master_data.get('time', '00:00')
+        time_str = master_data.get('time', '00:00')
+        appointment_time = datetime.strptime(time_str, "%H:%M").time()
 
-        # Добавляем нужные поля для модели
         validated_data['appointment_date'] = appointment_date
         validated_data['appointment_time'] = appointment_time
 
         return Client.objects.create(**validated_data)
-      
+
+    def update(self, instance, validated_data):
+        date_str = validated_data.pop('date', None)
+        if date_str:
+            instance.appointment_date = datetime.strptime(date_str, "%d.%m.%y").date()
+
+        master_data = validated_data.get('master', {})
+        if 'time' in master_data:
+            instance.appointment_time = datetime.strptime(master_data['time'], "%H:%M").time()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
+
 
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
