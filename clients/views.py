@@ -105,11 +105,11 @@ class ExpenseStatsView(APIView):
 
         # Статистика за сегодня
         spent_today = Expense.objects.filter(date=today).aggregate(
-            total=Sum('quantity')  # Сумма потраченных средств за сегодня (quantity)
+            total=Sum('price')  # Сумма потраченных средств за сегодня (quantity)
         )['total'] or 0
 
         items_spent_today = Expense.objects.filter(date=today).aggregate(
-            total=Sum('price')  # Сумма потраченных единиц за сегодня (amount)
+            total=Sum('amount')  # Сумма потраченных единиц за сегодня (amount)
         )['total'] or 0
 
         # Статистика за месяц
