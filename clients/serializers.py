@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Worker, Service, Client, Expense
+from datetime import datetime
 
 class WorkerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,13 +12,36 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = '__all__'
 
+
 class ClientSerializer(serializers.ModelSerializer):
-    worker = WorkerSerializer()  # Вложенный сериализатор для работника
-    services = ServiceSerializer(many=True)  # Вложенный сериализатор для списка услуг
+    name = serializers.CharField(source='full_name')
+    phone = serializers.CharField(source='phone_number')
+    date = serializers.CharField(write_only=True)
+
+    master = serializers.JSONField()
+    cabinet = serializers.JSONField()
+    services = serializers.JSONField()
+    product = serializers.JSONField()
+    payment = serializers.CharField()
 
     class Meta:
         model = Client
-        fields = '__all__'
+        fields = ['name', 'phone', 'date', 'master', 'cabinet', 'services', 'product', 'payment']
+
+    def create(self, validated_data):
+        # Извлекаем и преобразуем данные
+        date_str = validated_data.pop('date')  # "22.05.25"
+        appointment_date = datetime.strptime(date_str, "%d.%m.%y").date()
+
+        master_data = validated_data.get('master', {})
+        appointment_time = master_data.get('time', '00:00')
+
+        # Добавляем нужные поля для модели
+        validated_data['appointment_date'] = appointment_date
+        validated_data['appointment_time'] = appointment_time
+
+        return Client.objects.create(**validated_data)
+      
 
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:

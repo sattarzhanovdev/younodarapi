@@ -48,18 +48,21 @@ class WorkerServiceShareDetail(models.Model):
     def __str__(self):
         return f"{self.worker_service_share.worker} - {self.service} ({self.share_type})"
 
+from django.db import models
+
 class Client(models.Model):
     full_name = models.CharField(max_length=255)
-    appointment_day = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(31)])
-    appointment_month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
-    appointment_time = models.TimeField(null=True, blank=True)
     phone_number = models.CharField(max_length=20)
-    services = models.ManyToManyField(Service)
-    worker = models.ForeignKey(Worker, on_delete=models.CASCADE)
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
+    services = models.JSONField(null=True, blank=True)
+    product = models.JSONField(null=True, blank=True)
+    master = models.JSONField(null=True, blank=True)
+    cabinet = models.JSONField(null=True, blank=True)
+    payment = models.CharField(max_length=50)
 
     def __str__(self):
-        time_str = self.appointment_time.strftime('%H:%M') if self.appointment_time else "Без времени"
-        return f"{self.full_name} — {self.appointment_day}/{self.appointment_month} {time_str}"
+        return f"{self.full_name} — {self.appointment_date} {self.appointment_time}"
 
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -86,7 +89,7 @@ class Expense(models.Model):
     @property
     def day_expense(self):
         return Expense.objects.filter(date=self.date).aggregate(total=models.Sum('amount'))['total'] or 0
-      
+
 # Фильтр расходов за определенный месяц
 def get_monthly_expenses(month=None, year=None):
     today = now().date()

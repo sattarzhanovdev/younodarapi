@@ -5,6 +5,15 @@ from .models import Worker, Service, Client, Expense
 from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer, DailyExpenseStatsSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.core.exceptions import ValidationError
+from django.utils.dateparse import parse_time
+from django.views import View
+from django_filters.rest_framework import DjangoFilterBackend
+
+
 
 class WorkerViewSet(viewsets.ModelViewSet):
     queryset = Worker.objects.all()
@@ -17,6 +26,8 @@ class ServiceViewSet(viewsets.ModelViewSet):
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['appointment_day', 'appointment_month', 'worker']
 
 class ExpenseListCreateView(generics.ListCreateAPIView):
     queryset = Expense.objects.all()
@@ -65,3 +76,43 @@ class ClientsAddedTodayView(APIView):
         today = now().date()
         count = Client.objects.filter(appointment_day=today.day, appointment_month=today.month).count()
         return Response({"clients_added_today": count})
+
+
+
+
+
+
+
+# POST
+
+class ClientDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return None
+
+    def post(self, request):
+        serializer = ClientSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        client = self.get_object(pk)
+        if not client:
+            return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ClientSerializer(client, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        client = self.get_object(pk)
+        if not client:
+            return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
+        client.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
