@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from datetime import datetime
+from django.utils import timezone
 
 
 class WorkerViewSet(viewsets.ModelViewSet):
@@ -88,19 +89,45 @@ class MonthlyExpensesView(generics.ListAPIView):
         return Expense.objects.filter(date__year=year, date__month=month)
 
 
-class DailyStatsView(APIView):
-    def get(self, request, *args, **kwargs):
-        today = now().date()
+class ExpenseStatsView(APIView):
+    def get(self, request):
+        today = date.today()
 
-        clients_today = Client.objects.filter(appointment_date=today).count()
-        spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('price'))['total'] or 0
-        items_spent_today = Expense.objects.filter(date=today).aggregate(total=Sum('quantity'))['total'] or 0
+        # Получаем начало и конец текущего месяца
+        first_day_of_month = today.replace(day=1)
+        last_day_of_month = today.replace(day=28) + timezone.timedelta(days=4)  # это даст нам следующий месяц, отнимем 1 день
+        last_day_of_month = last_day_of_month.replace(day=1) - timezone.timedelta(days=1)
 
+        # Статистика для всего времени
+        total_items = Expense.objects.count()
+        added_today = Expense.objects.filter(date=today).count()
+
+        # Статистика за сегодня
+        spent_today = Expense.objects.filter(date=today).aggregate(
+            total=Sum('quantity')  # Сумма потраченных средств за сегодня (quantity)
+        )['total'] or 0
+
+        items_spent_today = Expense.objects.filter(date=today).aggregate(
+            total=Sum('amount')  # Сумма потраченных единиц за сегодня (amount)
+        )['total'] or 0
+
+        # Статистика за месяц
+        income_this_month = Expense.objects.filter(date__gte=first_day_of_month, date__lte=last_day_of_month).aggregate(
+            total=Sum('quantity')  # Доход (по quantity) за месяц
+        )['total'] or 0
+
+        expense_this_month = Expense.objects.filter(date__gte=first_day_of_month, date__lte=last_day_of_month).aggregate(
+            total=Sum('amount')  # Расход (по amount) за месяц
+        )['total'] or 0
+
+        # Подготовка данных
         data = {
-            "total_items": Expense.objects.count(),
-            "added_today": clients_today,
-            "spent_today": spent_today,
-            "items_spent_today": items_spent_today
+            'total_items': total_items,
+            'added_today': added_today,
+            'spent_today': spent_today,
+            'items_spent_today': items_spent_today,
+            'income_this_month': income_this_month,
+            'expense_this_month': expense_this_month
         }
 
         serializer = DailyExpenseStatsSerializer(data)

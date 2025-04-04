@@ -118,5 +118,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
 class DailyExpenseStatsSerializer(serializers.Serializer):
     total_items = serializers.IntegerField()
     added_today = serializers.IntegerField()
-    spent_today = serializers.DecimalField(max_digits=10, decimal_places=2)
-    items_spent_today = serializers.IntegerField()
+    spent_today = serializers.DecimalField(max_digits=12, decimal_places=2)
+    items_spent_today = serializers.DecimalField(max_digits=12, decimal_places=2)
+    income_this_month = serializers.DecimalField(max_digits=12, decimal_places=2)
+    expense_this_month = serializers.DecimalField(max_digits=12, decimal_places=2)
+
