@@ -108,7 +108,7 @@ class ExpenseStatsView(APIView):
         )['total'] or 0
 
         items_spent_today = Expense.objects.filter(date=today).aggregate(
-            total=Sum('amount')  # Сумма потраченных единиц за сегодня (amount)
+            total=Sum('price')  # Сумма потраченных единиц за сегодня (amount)
         )['total'] or 0
 
         # Статистика за месяц
@@ -117,7 +117,7 @@ class ExpenseStatsView(APIView):
         )['total'] or 0
 
         expense_this_month = Expense.objects.filter(date__gte=first_day_of_month, date__lte=last_day_of_month).aggregate(
-            total=Sum('amount')  # Расход (по amount) за месяц
+            total=Sum('price')  # Расход (по amount) за месяц
         )['total'] or 0
 
         # Подготовка данных
