@@ -1,9 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import WorkerViewSet, ServiceViewSet, ClientViewSet, ExpenseListCreateView, ExpenseDetailView, MonthlyExpensesView, ExpenseStatsView, ClientsAddedTodayView
+from .views import WorkerViewSet, ServiceViewSet, ClientViewSet, ExpenseListCreateView, ExpenseDetailView, MonthlyExpensesView, ExpenseStatsView, ClientsAddedTodayView, CabinetsViewSet
 
 router = DefaultRouter()
 router.register(r'workers', WorkerViewSet)
+router.register(r'cabinets', CabinetsViewSet)
 router.register(r'services', ServiceViewSet)
 router.register(r'clients', ClientViewSet)
 

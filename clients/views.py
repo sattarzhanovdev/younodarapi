@@ -2,7 +2,7 @@ from rest_framework import viewsets, generics, status
 from django.utils.timezone import now
 from django.db.models import Sum
 from .models import Worker, Service, Client, Expense
-from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer, DailyExpenseStatsSerializer
+from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer, DailyExpenseStatsSerializer, CabinetsSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,6 +14,10 @@ from datetime import date
 class WorkerViewSet(viewsets.ModelViewSet):
     queryset = Worker.objects.all()
     serializer_class = WorkerSerializer
+
+class CabinetsViewSet(viewsets.ModelViewSet):
+    queryset = Worker.objects.all()
+    serializer_class = CabinetsSerializer
 
 
 class ServiceViewSet(viewsets.ModelViewSet):

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Worker, Service, Client, Expense
+from .models import Worker, Service, Client, Expense, Cabinets
 from datetime import datetime
 
 
@@ -12,6 +12,10 @@ class WorkerSerializer(serializers.ModelSerializer):
         model = Worker
         fields = '__all__'
 
+class CabinetsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cabinets
+        fields = '__all__'
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
