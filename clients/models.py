@@ -54,7 +54,7 @@ class WorkerServiceShareDetail(models.Model):
 
 
 class Client(models.Model):
-    id=models.AutoField(default=True)
+    id=models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     appointment_date = models.DateField()
