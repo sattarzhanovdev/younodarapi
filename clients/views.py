@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics, status
 from django.utils.timezone import now
 from django.db.models import Sum
-from .models import Worker, Service, Client, Expense
+from .models import Worker, Service, Client, Expense, Cabinets
 from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer, DailyExpenseStatsSerializer, CabinetsSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,7 +16,7 @@ class WorkerViewSet(viewsets.ModelViewSet):
     serializer_class = WorkerSerializer
 
 class CabinetsViewSet(viewsets.ModelViewSet):
-    queryset = Worker.objects.all()
+    queryset = Cabinets.objects.all()
     serializer_class = CabinetsSerializer
 
 
