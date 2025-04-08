@@ -28,6 +28,18 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
+class Stock(models.Model):
+    name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    plusToday = models.DecimalField(max_digits=10, decimal_places=2)
+    minusToday = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 
 class WorkerServiceShare(models.Model):
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE)

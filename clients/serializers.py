@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Worker, Service, Client, Expense, Cabinets
+from .models import Worker, Service, Client, Expense, Cabinets, Stock
 from datetime import datetime
 
 
@@ -10,6 +10,11 @@ def is_string(value):
 class WorkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Worker
+        fields = '__all__'
+
+class StockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stock
         fields = '__all__'
 
 class CabinetsSerializer(serializers.ModelSerializer):
