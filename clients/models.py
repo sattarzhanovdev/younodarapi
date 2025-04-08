@@ -6,6 +6,7 @@ from django.utils.timezone import now
 
 
 class Worker(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20)
     position = models.CharField(max_length=255)
@@ -22,6 +23,7 @@ class Cabinets(models.Model):
 
 
 class Service(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -29,6 +31,7 @@ class Service(models.Model):
         return self.name
 
 class Stock(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     plusToday = models.DecimalField(max_digits=10, decimal_places=2)
@@ -101,6 +104,7 @@ class Client(models.Model):
 
 
 class Expense(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     amount = models.DecimalField(
         max_digits=10, decimal_places=2,
