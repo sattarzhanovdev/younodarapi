@@ -263,7 +263,8 @@ class StaffProfitView(APIView):
         # Только оплаченные клиенты за текущий месяц
         clients = Client.objects.filter(
             appointment_date__gte=first_day,
-            payment='full'
+            payment='full', 
+            status='Оплачено'
         )
 
         stats = defaultdict(lambda: {
