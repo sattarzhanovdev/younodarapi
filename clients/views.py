@@ -48,8 +48,7 @@ class BusinessStatsView(APIView):
         )['total'] or Decimal("0.00")
 
         paid_clients_day = Client.objects.filter(
-            appointment_date=today,
-            payment='full'
+            appointment_date=today
         )
         daily_revenue = sum([c.total_cost for c in paid_clients_day], Decimal("0.00"))
         daily_clients = paid_clients_day.count()
@@ -316,7 +315,6 @@ class CashDailyStatsView(APIView):
         clients = Client.objects.filter(
             appointment_date__gte=first_day,
             appointment_date__lte=last_day,
-            payment='full'
         )
 
         for client in clients:
