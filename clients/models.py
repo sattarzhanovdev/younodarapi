@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
@@ -40,6 +40,8 @@ class Stock(models.Model):
     status = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    date = models.DateField(default=now)
 
     def __str__(self):
         return self.name
@@ -85,10 +87,9 @@ class Client(models.Model):
     appointment_time = models.TimeField()
     services = models.JSONField(null=True, blank=True)
     product = models.JSONField(null=True, blank=True)
-    master = models.JSONField(null=True, blank=True)
-    cabinet = models.JSONField(null=True, blank=True)
     payment = models.CharField(max_length=50)
     time = models.CharField(max_length=5)
+    status = models.CharField(max_length=50, default="Не оплачено")
 
     def __str__(self):
         return f"{self.full_name} — {self.appointment_date} {self.appointment_time}"
@@ -139,3 +140,4 @@ def get_weekly_expenses(year, week_number):
     first_day_of_week = datetime.fromisocalendar(year, week_number, 1).date()
     last_day_of_week = first_day_of_week + timedelta(days=6)
     return Expense.objects.filter(date__range=[first_day_of_week, last_day_of_week])
+

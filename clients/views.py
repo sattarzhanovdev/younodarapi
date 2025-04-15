@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics, status
 from django.utils.timezone import now
-from django.db.models import Sum
+from django.db.models import Sum, F
 from .models import Worker, Service, Client, Expense, Cabinets, Stock
 from .serializers import WorkerSerializer, ServiceSerializer, ClientSerializer, ExpenseSerializer, StockSerializer,DailyExpenseStatsSerializer, CabinetsSerializer
 from rest_framework.response import Response
@@ -9,7 +9,69 @@ from django_filters.rest_framework import DjangoFilterBackend
 from datetime import datetime
 from django.utils import timezone
 from datetime import date
+from django.db import models
 
+
+class BusinessStatsView(APIView):
+    def get(self, request):
+        today = date.today()
+        first_day = today.replace(day=1)
+
+        # --- МЕСЯЦ ---
+        monthly_expense = Expense.objects.filter(
+            date__gte=first_day
+        ).aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )['total'] or 0
+
+        monthly_revenue = Stock.objects.filter(
+            date__gte=first_day
+        ).aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )['total'] or 0
+
+        # 👉 только оплаченные клиенты
+        monthly_clients = Client.objects.filter(
+            appointment_date__gte=first_day,
+            payment='full'
+        ).count()
+
+        monthly_profit = monthly_revenue - monthly_expense
+
+        # --- ДЕНЬ ---
+        daily_expense = Expense.objects.filter(
+            date=today
+        ).aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )['total'] or 0
+
+        daily_revenue = Stock.objects.filter(
+            date=today
+        ).aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )['total'] or 0
+
+        daily_clients = Client.objects.filter(
+            appointment_date=today,
+            payment='full'
+        ).count()
+
+        daily_profit = daily_revenue - daily_expense
+
+        return Response({
+            # Месяц
+            'monthly_expense': monthly_expense,
+            'monthly_revenue': monthly_revenue,
+            'monthly_profit': monthly_profit,
+            'monthly_clients': monthly_clients,
+
+            # День
+            'daily_expense': daily_expense,
+            'daily_revenue': daily_revenue,
+            'daily_profit': daily_profit,
+            'daily_clients': daily_clients,
+        }, status=status.HTTP_200_OK)
+        
 
 class WorkerViewSet(viewsets.ModelViewSet):
     queryset = Worker.objects.all()

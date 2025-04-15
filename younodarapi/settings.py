@@ -27,7 +27,10 @@ SECRET_KEY = 'django-insecure-1c8c(gys_2id7%2fa_bf9s9f$#ym(!f892usl2306kut3m9-39
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ['https://reqbin.com/']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000/']
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
 
 # Application definition
 

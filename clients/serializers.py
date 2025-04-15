@@ -37,8 +37,6 @@ class ClientSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source='phone_number')
     date = serializers.CharField(write_only=True)
 
-    master = serializers.JSONField()
-    cabinet = serializers.JSONField()
     services = serializers.JSONField()
     product = serializers.JSONField()
     payment = serializers.CharField()
@@ -52,9 +50,8 @@ class ClientSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'phone', 'date', 'time',
             'appointment_date', 'appointment_time',
-            'master', 'cabinet',
             'services', 'product',
-            'payment'
+            'payment', 'status'
         ]
 
     def create(self, validated_data):
