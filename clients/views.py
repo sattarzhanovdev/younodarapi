@@ -8,8 +8,16 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from datetime import datetime
 from django.utils import timezone
-from datetime import date
+from datetime import date, timedelta
 from django.db import models
+from django.db.models import DecimalField
+from decimal import Decimal
+from collections import defaultdict
+from calendar import monthrange
+import locale
+
+locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+
 
 
 class BusinessStatsView(APIView):
@@ -21,41 +29,30 @@ class BusinessStatsView(APIView):
         monthly_expense = Expense.objects.filter(
             date__gte=first_day
         ).aggregate(
-            total=Sum(F('quantity') * F('price'))
-        )['total'] or 0
+            total=Sum(F('quantity') * F('price'), output_field=DecimalField())
+        )['total'] or Decimal("0.00")
 
-        monthly_revenue = Stock.objects.filter(
-            date__gte=first_day
-        ).aggregate(
-            total=Sum(F('quantity') * F('price'))
-        )['total'] or 0
-
-        # 👉 только оплаченные клиенты
-        monthly_clients = Client.objects.filter(
+        paid_clients_month = Client.objects.filter(
             appointment_date__gte=first_day,
             payment='full'
-        ).count()
-
+        )
+        monthly_revenue = sum([c.total_cost for c in paid_clients_month], Decimal("0.00"))
+        monthly_clients = paid_clients_month.count()
         monthly_profit = monthly_revenue - monthly_expense
 
         # --- ДЕНЬ ---
         daily_expense = Expense.objects.filter(
             date=today
         ).aggregate(
-            total=Sum(F('quantity') * F('price'))
-        )['total'] or 0
+            total=Sum(F('quantity') * F('price'), output_field=DecimalField())
+        )['total'] or Decimal("0.00")
 
-        daily_revenue = Stock.objects.filter(
-            date=today
-        ).aggregate(
-            total=Sum(F('quantity') * F('price'))
-        )['total'] or 0
-
-        daily_clients = Client.objects.filter(
+        paid_clients_day = Client.objects.filter(
             appointment_date=today,
             payment='full'
-        ).count()
-
+        )
+        daily_revenue = sum([c.total_cost for c in paid_clients_day], Decimal("0.00"))
+        daily_clients = paid_clients_day.count()
         daily_profit = daily_revenue - daily_expense
 
         return Response({
@@ -258,3 +255,90 @@ class ClientDetailView(APIView):
             return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class StaffProfitView(APIView):
+    def get(self, request):
+        today = date.today()
+        first_day = today.replace(day=1)
+
+        # Только оплаченные клиенты за текущий месяц
+        clients = Client.objects.filter(
+            appointment_date__gte=first_day,
+            payment='full'
+        )
+
+        stats = defaultdict(lambda: {
+            'revenue': Decimal('0.00'),
+            'profit': Decimal('0.00'),
+            'balance': Decimal('0.00'),
+            'count': 0
+        })
+
+        for client in clients:
+            services = client.services or []
+            for service in services:
+                master_name = service.get('assigned', 'Не указан')
+                price = Decimal(service.get('price', 0))
+
+                stats[master_name]['revenue'] += price
+                stats[master_name]['profit'] += price * Decimal('0.30')  # можно поменять %
+                stats[master_name]['balance'] += price
+                stats[master_name]['count'] += 1
+
+        result = []
+        for i, (master, data) in enumerate(stats.items(), 1):
+            result.append({
+                'id': i,
+                'name': master,
+                'revenue': f"{data['revenue']:.2f}",
+                'profit': f"{data['profit']:.2f}",
+                'balance': f"{data['balance']:.2f}",
+                'count': data['count']
+            })
+
+        return Response(result, status=status.HTTP_200_OK)
+    
+    
+class CashDailyStatsView(APIView):
+    def get(self, request):
+        today = date.today()
+        first_day = today.replace(day=1)
+        last_day = today
+
+        stats_by_day = defaultdict(lambda: {
+            'revenue': Decimal('0.00'),
+            'profit': Decimal('0.00'),
+            'balance': Decimal('0.00'),
+            'count': 0
+        })
+
+        clients = Client.objects.filter(
+            appointment_date__gte=first_day,
+            appointment_date__lte=last_day,
+            payment='full'
+        )
+
+        for client in clients:
+            appointment_day = client.appointment_date
+            services = client.services or []
+
+            for service in services:
+                price = Decimal(service.get('price', 0))
+                stats_by_day[appointment_day]['revenue'] += price
+                stats_by_day[appointment_day]['profit'] += price * Decimal('0.30')  # или другой %
+                stats_by_day[appointment_day]['balance'] += price
+                stats_by_day[appointment_day]['count'] += 1
+
+        result = []
+        for i, (day, data) in enumerate(sorted(stats_by_day.items()), 1):
+            result.append({
+                'id': i,
+                'date': day.strftime('%-d %B'),  # Например: "12 марта"
+                'revenue': f"{data['revenue']:.2f}",
+                'profit': f"{data['profit']:.2f}",
+                'balance': f"{data['balance']:.2f}",
+                'count': data['count']
+            })
+
+        return Response(result, status=status.HTTP_200_OK)

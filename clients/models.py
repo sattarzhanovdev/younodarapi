@@ -3,6 +3,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
+from decimal import Decimal
 
 
 class Worker(models.Model):
@@ -80,7 +81,7 @@ class WorkerServiceShareDetail(models.Model):
 
 
 class Client(models.Model):
-    id=models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     appointment_date = models.DateField()
@@ -96,11 +97,13 @@ class Client(models.Model):
 
     @property
     def total_cost(self):
-        total = 0
+        total = Decimal("0.00")
         for service in self.services or []:
-            total += float(service.get("price", 0))
+            total += Decimal(service.get("price", 0) or 0)
         for item in self.product or []:
-            total += float(item.get("price", 0)) * int(item.get("amount", 1))
+            price = Decimal(item.get("price", 0) or 0)
+            amount = Decimal(item.get("amount", 1) or 1)
+            total += price * amount
         return total
 
 

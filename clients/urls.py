@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import WorkerViewSet, ServiceViewSet, ClientViewSet, ExpenseListCreateView, ExpenseDetailView, MonthlyExpensesView, ExpenseStatsView, ClientsAddedTodayView, CabinetsViewSet, StockViewSet, BusinessStatsView
+from .views import WorkerViewSet, ServiceViewSet, ClientViewSet, ExpenseListCreateView, ExpenseDetailView, MonthlyExpensesView, ExpenseStatsView, ClientsAddedTodayView, CabinetsViewSet, StockViewSet, BusinessStatsView, StaffProfitView, CashDailyStatsView
 
 router = DefaultRouter()
 router.register(r'workers', WorkerViewSet)
@@ -18,5 +18,7 @@ urlpatterns = [
     path('expenses/stats/daily/', ExpenseStatsView.as_view(), name='daily-expense-stats'),
     path('today/', ClientsAddedTodayView.as_view(), name='clients-today'),
     path('stats/monthly/', BusinessStatsView.as_view(), name='monthly-stats'),
+    path('stats/staff/', StaffProfitView.as_view()),
+    path('stats/cash-daily/', CashDailyStatsView.as_view(), name='cash-daily-stats'),
 
 ]
