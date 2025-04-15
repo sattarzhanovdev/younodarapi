@@ -33,8 +33,7 @@ class BusinessStatsView(APIView):
         )['total'] or Decimal("0.00")
 
         paid_clients_month = Client.objects.filter(
-            appointment_date__gte=first_day,
-            payment='full'
+            appointment_date__gte=first_day
         )
         monthly_revenue = sum([c.total_cost for c in paid_clients_month], Decimal("0.00"))
         monthly_clients = paid_clients_month.count()
